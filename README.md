@@ -1,6 +1,6 @@
 # React-resizable-rotatable-draggable-rectangle
 
-** refactor this project：change left/top => x/y(center) **
+**refactor this project：change left/top => x/y(center)**
 
 [![NPM](https://img.shields.io/npm/v/react-resizable-rotatable-draggable.svg)](https://www.npmjs.com/package/react-resizable-rotatable-draggable) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
