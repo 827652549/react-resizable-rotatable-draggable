@@ -1,5 +1,7 @@
 # React-resizable-rotatable-draggable-rectangle
 
+**refactor this project：change left/top => x/y(center) **
+
 [![NPM](https://img.shields.io/npm/v/react-resizable-rotatable-draggable.svg)](https://www.npmjs.com/package/react-resizable-rotatable-draggable) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 A react widget that can be resized and rotated via a handler.
@@ -73,7 +75,6 @@ class App extends Component {
           width={width}
           height={height}
           rotateAngle={rotateAngle}
-          // aspectRatio={false}
           // minWidth={10}
           // minHeight={10}
           zoomable='n, w, s, e, nw, ne, se, sw'
@@ -109,7 +110,6 @@ export default App
 |zoomable     | string                  | ''      | 'n, w, s, e, nw, ne, se, sw'          |
 |minWidth     | number                  | 10      | 0                                     |
 |minHeight    | number                  | 10      | 0                                     |
-|aspectRatio  | number (width / height) |         | 1(which makes the rectangle a square) |
 |onRotateStart| func                    |         |                                       |
 |onRotate     | func                    |         | (rotateAngle)                         |
 |onRotateEnd  | func                    |         |                                       |
