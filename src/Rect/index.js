@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import React, { PureComponent } from 'react'
-import { getLength, getAngle, getCursor } from '../utils'
+import { getAngle, getCursor } from '../utils'
 import StyledRect from './StyledRect'
 
 const zoomableMap = {
@@ -14,6 +14,9 @@ const zoomableMap = {
   'sw': 'bl'
 }
 
+/**
+ * 维护一组被操作的矩形组件
+ */
 export default class Rect extends PureComponent {
   static propTypes = {
     styles: PropTypes.object,
@@ -27,11 +30,12 @@ export default class Rect extends PureComponent {
     onRotateEnd: PropTypes.func,
     onDragStart: PropTypes.func,
     onDrag: PropTypes.func,
-    onDragEnd: PropTypes.func,
-    parentRotateAngle: PropTypes.number
+    onDragEnd: PropTypes.func
   }
 
-  setElementRef = (ref) => { this.$element = ref }
+  setElementRef = (ref) => {
+    this.$element = ref
+  }
 
   // Drag
   startDrag = (e) => {
@@ -101,22 +105,27 @@ export default class Rect extends PureComponent {
   startResize = (e, cursor) => {
     if (e.button !== 0) return
     document.body.style.cursor = cursor
+    // 初始状态
     const { styles: { position: { centerX, centerY }, size: { width, height }, transform: { rotateAngle } } } = this.props
-    const { clientX: startX, clientY: startY } = e
+    // 将初始状态维护到rect到对象中去
     const rect = { width, height, centerX, centerY, rotateAngle }
-    const type = e.target.getAttribute('class').split(' ')[ 0 ]
+    // 获取当前选中的点的类型
+    const type = e.target.getAttribute('class').split(' ')[0]
+    // 在resize开始的时候调用
     this.props.onResizeStart && this.props.onResizeStart()
+    // 标识状态：鼠标按下
     this._isMouseDown = true
+    // 鼠标移动，计算内部
     const onMove = (e) => {
       if (!this._isMouseDown) return // patch: fix windows press win key during mouseup issue
       e.stopImmediatePropagation()
+      // 当前鼠标坐标
       const { clientX, clientY } = e
-      const deltaX = clientX - startX
-      const deltaY = clientY - startY
-      const alpha = Math.atan2(deltaY, deltaX)
-      const deltaL = getLength(deltaX, deltaY)
+      // 将偏移存入delta对象中
+      const delta = { deltaX: clientX, deltaY: clientY }
+
       const isShiftKey = e.shiftKey
-      this.props.onResize(deltaL, alpha, rect, type, isShiftKey)
+      this.props.onResize(delta, rect, type, isShiftKey)
     }
 
     const onUp = () => {
@@ -139,8 +148,7 @@ export default class Rect extends PureComponent {
         transform: { rotateAngle }
       },
       zoomable,
-      rotatable,
-      parentRotateAngle
+      rotatable
     } = this.props
     const style = {
       width: Math.abs(width),
@@ -157,6 +165,7 @@ export default class Rect extends PureComponent {
         onMouseDown={this.startDrag}
         className="rect single-resizer"
         style={style}
+        draggable={false}
       >
         {
           rotatable &&
@@ -173,9 +182,10 @@ export default class Rect extends PureComponent {
 
         {
           direction.map(d => {
-            const cursor = `${getCursor(rotateAngle + parentRotateAngle, d)}-resize`
+            const cursor = `${getCursor(rotateAngle, d)}-resize`
             return (
-              <div key={d} style={{ cursor }} className={`${zoomableMap[ d ]} resizable-handler`} onMouseDown={(e) => this.startResize(e, cursor)} />
+              <div key={d} style={{ cursor }} className={`${zoomableMap[d]} resizable-handler`}
+                onMouseDown={(e) => this.startResize(e, cursor)} />
             )
           })
         }
@@ -183,7 +193,7 @@ export default class Rect extends PureComponent {
         {
           direction.map(d => {
             return (
-              <div key={d} className={`${zoomableMap[ d ]} square`} />
+              <div key={d} className={`${zoomableMap[d]} square`} />
             )
           })
         }

@@ -1,20 +1,22 @@
 import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import Rect from './Rect'
-import { centerToTL, tLToCenter, getNewStyle, degToRadian } from './utils'
+import { getNewStyle, formatCenter } from './utils'
 
 export default class ResizableRect extends Component {
   static propTypes = {
-    left: PropTypes.number.isRequired,
-    top: PropTypes.number.isRequired,
+    x: PropTypes.number.isRequired,
+    y: PropTypes.number.isRequired,
     width: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
     rotatable: PropTypes.bool,
     rotateAngle: PropTypes.number,
-    parentRotateAngle: PropTypes.number,
     zoomable: PropTypes.string,
+    // eslint-disable-next-line react/no-unused-prop-types
     minWidth: PropTypes.number,
+    // eslint-disable-next-line react/no-unused-prop-types
     minHeight: PropTypes.number,
+    // eslint-disable-next-line react/no-unused-prop-types
     aspectRatio: PropTypes.oneOfType([
       PropTypes.number,
       PropTypes.bool
@@ -31,7 +33,6 @@ export default class ResizableRect extends Component {
   }
 
   static defaultProps = {
-    parentRotateAngle: 0,
     rotateAngle: 0,
     rotatable: true,
     zoomable: '',
@@ -39,6 +40,9 @@ export default class ResizableRect extends Component {
     minHeight: 10
   }
 
+  /**
+   * 执行旋转
+   */
   handleRotate = (angle, startAngle) => {
     if (!this.props.onRotate) return
     let rotateAngle = Math.round(startAngle + angle)
@@ -59,39 +63,40 @@ export default class ResizableRect extends Component {
     this.props.onRotate(rotateAngle)
   }
 
-  handleResize = (length, alpha, rect, type, isShiftKey) => {
+  /**
+   * 调整大小
+   */
+  handleResize = (delta, rect, type, isShiftKey) => {
+    // 当onResize没有指定内容，即看成不使用调整大小功能，则不执行Resize功能
     if (!this.props.onResize) return
-    const { rotateAngle, aspectRatio, minWidth, minHeight, parentRotateAngle } = this.props
-    const beta = alpha - degToRadian(rotateAngle + parentRotateAngle)
-    const deltaW = length * Math.cos(beta)
-    const deltaH = length * Math.sin(beta)
-    const ratio = isShiftKey && !aspectRatio ? rect.width / rect.height : aspectRatio
-    const {
+    let {
       position: { centerX, centerY },
-      size: { width, height }
-    } = getNewStyle(type, { ...rect, rotateAngle }, deltaW, deltaH, ratio, minWidth, minHeight)
-
-    this.props.onResize(centerToTL({ centerX, centerY, width, height, rotateAngle }), isShiftKey, type)
+      size: { currWidth, currHeight }
+    } = getNewStyle(type, delta, rect)
+    this.props.onResize({ x: centerX, y: centerY, width: currWidth, height: currHeight }, isShiftKey, type)
   }
 
+  /**
+   * 当执行拖拽功能时，执行库的使用者传入的拖拽函数
+   */
   handleDrag = (deltaX, deltaY) => {
     this.props.onDrag && this.props.onDrag(deltaX, deltaY)
   }
 
   render () {
     const {
-      top, left, width, height, rotateAngle, parentRotateAngle, zoomable, rotatable,
+      y, x, width, height, rotateAngle, zoomable, rotatable,
       onRotate, onResizeStart, onResizeEnd, onRotateStart, onRotateEnd, onDragStart, onDragEnd
     } = this.props
 
-    const styles = tLToCenter({ top, left, width, height, rotateAngle })
+    const styles = formatCenter({ y, x, width, height, rotateAngle })
 
     return (
+      // 引入Rect组件，当执行on状态时，执行对应方法
       <Rect
         styles={styles}
         zoomable={zoomable}
         rotatable={Boolean(rotatable && onRotate)}
-        parentRotateAngle={parentRotateAngle}
 
         onResizeStart={onResizeStart}
         onResize={this.handleResize}
